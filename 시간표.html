@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>주간 자동 학습 플래너</title>
+
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #161922;
+  --surface2: #1e2330;
+  --surface3: #252b3a;
+  --border: #2a3040;
+  --accent: #5b8dee;
+  --accent2: #e85b8d;
+  --accent3: #5be8b0;
+  --warn: #eebf5b;
+  --text: #e8eaf0;
+  --text2: #8892a4;
+  --text3: #596274;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, "Noto Sans KR", sans-serif;
+  min-height: 100vh;
+}
+
+header {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+
+header p {
+  color: var(--text2);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: minmax(560px, 640px) minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px;
+  min-height: calc(100vh - 82px);
+}
+
+.panel,
+.schedule-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 26px;
+  overflow: auto;
+  max-height: calc(100vh - 118px);
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text2);
+  margin: 24px 0 12px;
+  letter-spacing: 0.7px;
+}
+
+.subtle {
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+}
+
+textarea {
+  resize: vertical;
+}
+
+label {
+  display: block;
+  color: var(--text2);
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.btn.danger:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+}
+
+.full-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.ui-mode-tabs,
+.mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ui-mode-tabs {
+  margin-bottom: 18px;
+  padding: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.ui-mode-tab,
+.mode-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text2);
+  padding: 11px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.mode-tab {
+  background: var(--surface2);
+  border-color: var(--border);
+  font-size: 12px;
+}
+
+.ui-mode-tab.active,
+.mode-tab.active {
+  background: rgba(91, 141, 238, 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.simple-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.simple-help {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 8px 0 12px;
+}
+
+.simple-task-input {
+  min-height: 170px;
+  font-family: Consolas, monospace;
+  line-height: 1.6;
+}
+
+body.simple-ui .advanced-panel {
+  display: none;
+}
+
+body.advanced-ui .simple-panel {
+  display: none;
+}
+
+.mode-note {
+  margin-top: 8px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.availability-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-editor {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.day-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.day-editor-title {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 18px 1fr 1fr 28px;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.time-row.available {
+  grid-template-columns: 1fr 18px 1fr 28px;
+}
+
+.time-row span {
+  color: var(--text3);
+  text-align: center;
+  font-size: 12px;
+}
+
+.time-row input {
+  padding: 7px;
+  font-size: 12px;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  color: var(--accent2);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.task-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.task-name {
+  flex: 1;
+}
+
+.task-meta,
+.task-options {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 0.8fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.task-options {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.estimate {
+  margin-top: 9px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(91, 141, 238, 0.08);
+  border: 1px solid rgba(91, 141, 238, 0.18);
+  color: var(--text2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.progress-wrap {
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 7px;
+  background: var(--surface3);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent3);
+  width: 0%;
+}
+
+.alert {
+  display: none;
+  background: rgba(232, 91, 141, 0.12);
+  border: 1px solid rgba(232, 91, 141, 0.35);
+  color: var(--accent2);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+.alert.show {
+  display: block;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.summary-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.summary-value {
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.summary-label {
+  color: var(--text3);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.warning-box {
+  background: rgba(238, 191, 91, 0.1);
+  border: 1px solid rgba(238, 191, 91, 0.3);
+  color: var(--warn);
+  padding: 11px 13px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.week-result {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.day-column {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 520px;
+}
+
+.day-title {
+  text-align: center;
+  font-weight: 900;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+
+.remain-text {
+  text-align: center;
+  color: var(--text3);
+  font-size: 11px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.block {
+  border-left: 4px solid var(--accent);
+  border-radius: 9px;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  background: var(--surface3);
+}
+
+.block-title {
+  font-weight: 800;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.block-time,
+.block-sub {
+  color: var(--text2);
+  font-size: 11px;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.block.fixed {
+  border-left-color: var(--accent2);
+  background: rgba(232, 91, 141, 0.1);
+}
+
+.block.break {
+  border-left-color: #555;
+  background: rgba(255,255,255,0.04);
+}
+
+.block-check {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+}
+
+.block-check input {
+  width: auto;
+  margin-top: 2px;
+}
+
+.empty {
+  color: var(--text3);
+  font-size: 12px;
+  text-align: center;
+  margin-top: 40px;
+  line-height: 1.6;
+}
+
+.result-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 1200px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .panel,
+  .schedule-panel {
+    max-height: none;
+  }
+
+  .week-result {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .week-result {
+    grid-template-columns: 1fr;
+  }
+
+  .task-meta,
+  .task-options,
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body class="simple-ui">
+<header>
+  <div>
+    <div class="logo">weekly study planner</div>
+    <p>간단 모드와 고급 모드를 나누어 주간 학습 계획을 자동 생성합니다.</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="saveData()">저장</button>
+    <button class="btn" onclick="loadData()">불러오기</button>
+    <button class="btn danger" onclick="resetAll()">초기화</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="panel">
+    <div class="ui-mode-tabs">
+      <button id="simpleUiBtn" class="ui-mode-tab active" onclick="setUiMode('simple')">간단 모드</button>
+      <button id="advancedUiBtn" class="ui-mode-tab" onclick="setUiMode('advanced')">고급 모드</button>
+    </div>
+
+    <div class="simple-panel">
+      <div class="section-title" style="margin-top:0">간단 설정</div>
+      <div class="simple-help">
+        간단 모드는 공부 가능 패턴과 과제 목록만 입력하면 됩니다.
+        처리 속도, 휴식, 분할, 우선순위는 기본값으로 자동 설정됩니다.
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>공부 가능 패턴</label>
+          <select id="simplePreset">
+            <option value="weekdayEvening">평일 저녁 + 주말 오후</option>
+            <option value="everyEvening">매일 저녁 가능</option>
+            <option value="weekendHeavy">평일 조금 + 주말 많이</option>
+            <option value="afterSchool">학교 끝나고 가능</option>
+          </select>
+        </div>
+        <div>
+          <label>하루 최대 공부(h)</label>
+          <input type="number" id="simpleDailyMax" value="4" min="0.5" step="0.5" />
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>과제 입력</label>
+        <textarea id="simpleTasksText" class="simple-task-input">수학 문제집 / 40쪽 / 수요일
+영어 단어 / 120개 / 금요일
+과학 보고서 / 5쪽 / 토요일</textarea>
+        <div class="simple-help">
+          형식: 과제명 / 분량+단위 / 마감요일<br>
+          예: 수학 문제집 / 40쪽 / 수요일
+        </div>
+      </div>
+
+      <button class="btn primary full-btn" onclick="applySimpleInputs(); generateSchedule();">간단 시간표 생성</button>
+      <button class="btn full-btn" onclick="setUiMode('advanced')">세부 설정 수정하기</button>
+    </div>
+
+    <div class="advanced-panel">
+      <div class="section-title">1. 시간 입력 방식</div>
+      <div class="mode-tabs">
+        <button id="availableModeBtn" class="mode-tab active" onclick="setTimeMode('available')">가능 시간 입력</button>
+        <button id="unavailableModeBtn" class="mode-tab" onclick="setTimeMode('unavailable')">불가능 시간 입력</button>
+      </div>
+      <div id="modeNote" class="mode-note">
+        가능한 시간을 직접 넣는 모드입니다. 예: 월요일 18:00~22:00.
+      </div>
+
+      <div class="section-title">2. 기본 하루 범위 / 하루 최대 공부량</div>
+      <div class="grid-3">
+        <div>
+          <label>기본 시작</label>
+          <input type="time" id="baseStart" value="06:00" onchange="saveSoft()" />
+        </div>
+        <div>
+          <label>기본 종료</label>
+          <input type="time" id="baseEnd" value="23:30" onchange="saveSoft()" />
+        </div>
+        <div>
+          <label>하루 최대 공부(h)</label>
+          <input type="number" id="dailyMaxHours" value="4" min="0.5" step="0.5" onchange="saveSoft()" />
+        </div>
+      </div>
+
+      <div class="section-title" id="timeEditorTitle">3. 요일별 가능 시간</div>
+      <div id="timeEditor" class="availability-editor"></div>
+
+      <div class="section-title">4. 집중 / 휴식 설정</div>
+      <div class="grid-2">
+        <div>
+          <label>집중 블록(분)</label>
+          <input type="number" id="focusLen" value="50" min="10" step="5" onchange="saveSoft()" />
+        </div>
+        <div>
+          <label>휴식 시간(분)</label>
+          <input type="number" id="breakLen" value="10" min="0" step="5" onchange="saveSoft()" />
+        </div>
+      </div>
+
+      <div class="section-title">5. 과제 목록</div>
+      <div id="taskList" class="task-list"></div>
+      <button class="btn full-btn" onclick="addTask()">+ 과제 추가</button>
+
+      <button class="btn primary full-btn" onclick="generateSchedule()">주간 시간표 생성 / 재배치</button>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+  </aside>
+
+  <main class="schedule-panel" id="schedulePanel">
+    <div class="empty">
+      왼쪽에서 설정을 입력한 뒤<br />
+      <strong style="color:var(--accent)">시간표 생성</strong> 버튼을 누르세요.
+    </div>
+  </main>
+</div>
+
+<script>
+const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+const DAY_NAMES = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+
+const PALETTE = [
+  '#5b8dee',
+  '#e85b8d',
+  '#5be8b0',
+  '#eebf5b',
+  '#bf5bee',
+  '#5bdaee',
+  '#ee8a5b',
+  '#9be15d'
+];
+
+let uiMode = 'simple';
+let timeMode = 'available';
+
+let availabilityData = [
+  [{ start: '18:00', end: '23:00' }],
+  [{ start: '18:00', end: '23:00' }],
+  [{ start: '18:00', end: '23:00' }],
+  [{ start: '18:00', end: '23:00' }],
+  [{ start: '18:00', end: '23:00' }],
+  [{ start: '13:00', end: '18:00' }],
+  [{ start: '13:00', end: '18:00' }]
+];
+
+let unavailabilityData = [
+  [{ start: '16:00', end: '18:00', label: '학원' }],
+  [{ start: '19:00', end: '20:00', label: '운동' }],
+  [{ start: '18:00', end: '19:00', label: '저녁' }],
+  [],
+  [],
+  [],
+  []
+];
+
+let tasks = [];
+let taskCounter = 0;
+let latestSchedule = null;
+
+function toMin(timeStr) {
+  if (!timeStr || !timeStr.includes(':')) return NaN;
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function fromMin(min) {
+  const safeMin = Math.max(0, Math.min(24 * 60, Math.round(min)));
+  const h = Math.floor(safeMin / 60);
+  const m = safeMin % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
+function formatHourMin(min) {
+  const rounded = Math.max(0, Math.round(min));
+  const h = Math.floor(rounded / 60);
+  const m = rounded % 60;
+  if (h === 0) return `${m}분`;
+  if (m === 0) return `${h}시간`;
+  return `${h}시간 ${m}분`;
+}
+
+function clampNumber(value, min, max) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function showAlert(msg) {
+  const box = document.getElementById('alertBox');
+  box.textContent = msg;
+  box.classList.add('show');
+  setTimeout(() => box.classList.remove('show'), 5000);
+}
+
+function setUiMode(mode) {
+  uiMode = mode;
+  document.body.classList.toggle('simple-ui', mode === 'simple');
+  document.body.classList.toggle('advanced-ui', mode === 'advanced');
+  document.getElementById('simpleUiBtn').classList.toggle('active', mode === 'simple');
+  document.getElementById('advancedUiBtn').classList.toggle('active', mode === 'advanced');
+  saveSoft();
+}
+
+function setTimeMode(mode) {
+  timeMode = mode;
+  document.getElementById('availableModeBtn').classList.toggle('active', mode === 'available');
+  document.getElementById('unavailableModeBtn').classList.toggle('active', mode === 'unavailable');
+
+  const title = document.getElementById('timeEditorTitle');
+  const note = document.getElementById('modeNote');
+
+  if (mode === 'available') {
+    title.textContent = '3. 요일별 가능 시간';
+    note.textContent = '가능한 시간을 직접 넣는 모드입니다. 예: 월요일 18:00~22:00.';
+  } else {
+    title.textContent = '3. 요일별 불가능 시간';
+    note.textContent = '불가능한 시간만 넣는 모드입니다. 기본 하루 범위에서 학원, 식사, 운동 시간을 제외합니다.';
+  }
+
+  renderTimeEditor();
+  saveSoft();
+}
+
+function renderTimeEditor() {
+  const editor = document.getElementById('timeEditor');
+  editor.innerHTML = '';
+
+  for (let day = 0; day < 7; day++) {
+    const box = document.createElement('div');
+    box.className = 'day-editor';
+
+    const buttonText = timeMode === 'available' ? '+ 가능 시간 추가' : '+ 불가능 시간 추가';
+
+    box.innerHTML = `
+      <div class="day-editor-head">
+        <div class="day-editor-title">${DAY_NAMES[day]}</div>
+        <button class="btn" onclick="addTimeRange(${day})">${buttonText}</button>
+      </div>
+      <div id="day-ranges-${day}"></div>
+    `;
+
+    editor.appendChild(box);
+    renderDayRanges(day);
+  }
+}
+
+function getActiveTimeData() {
+  return timeMode === 'available' ? availabilityData : unavailabilityData;
+}
+
+function renderDayRanges(day) {
+  const wrap = document.getElementById('day-ranges-' + day);
+  const data = getActiveTimeData();
+  const ranges = data[day];
+  wrap.innerHTML = '';
+
+  if (!ranges.length) {
+    const empty = document.createElement('div');
+    empty.className = 'subtle';
+    empty.textContent = timeMode === 'available' ? '가능 시간 없음' : '불가능 시간 없음';
+    wrap.appendChild(empty);
+    return;
+  }
+
+  ranges.forEach((range, index) => {
+    const row = document.createElement('div');
+    row.className = timeMode === 'available' ? 'time-row available' : 'time-row';
+
+    if (timeMode === 'available') {
+      row.innerHTML = `
+        <input type="time" value="${range.start}" onchange="updateTimeRange(${day}, ${index}, 'start', this.value)" />
+        <span>~</span>
+        <input type="time" value="${range.end}" onchange="updateTimeRange(${day}, ${index}, 'end', this.value)" />
+        <button class="remove-btn" onclick="removeTimeRange(${day}, ${index})">×</button>
+      `;
+    } else {
+      row.innerHTML = `
+        <input type="time" value="${range.start}" onchange="updateTimeRange(${day}, ${index}, 'start', this.value)" />
+        <span>~</span>
+        <input type="time" value="${range.end}" onchange="updateTimeRange(${day}, ${index}, 'end', this.value)" />
+        <input type="text" value="${escapeAttr(range.label || '')}" placeholder="이유" onchange="updateTimeRange(${day}, ${index}, 'label', this.value)" />
+        <button class="remove-btn" onclick="removeTimeRange(${day}, ${index})">×</button>
+      `;
+    }
+
+    wrap.appendChild(row);
+  });
+}
+
+function addTimeRange(day) {
+  const data = getActiveTimeData();
+  if (timeMode === 'available') {
+    data[day].push({ start: '18:00', end: '19:00' });
+  } else {
+    data[day].push({ start: '18:00', end: '19:00', label: '고정 일정' });
+  }
+  renderDayRanges(day);
+  saveSoft();
+}
+
+function updateTimeRange(day, index, key, value) {
+  const data = getActiveTimeData();
+  data[day][index][key] = value;
+  saveSoft();
+}
+
+function removeTimeRange(day, index) {
+  const data = getActiveTimeData();
+  data[day].splice(index, 1);
+  renderDayRanges(day);
+  saveSoft();
+}
+
+function mergeOverlappingSlots(slots) {
+  const sorted = [...slots].sort((a, b) => {
+    if (a.day !== b.day) return a.day - b.day;
+    return a.start - b.start;
+  });
+
+  const merged = [];
+  for (const slot of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && last.day === slot.day && slot.start <= last.end) {
+      last.end = Math.max(last.end, slot.end);
+      last.cursor = last.start;
+    } else {
+      merged.push({ ...slot, cursor: slot.start });
+    }
+  }
+  return merged;
+}
+
+function getSlotsFromAvailableData() {
+  const slots = [];
+
+  for (let day = 0; day < 7; day++) {
+    for (const range of availabilityData[day]) {
+      const start = toMin(range.start);
+      const end = toMin(range.end);
+      if (Number.isNaN(start) || Number.isNaN(end) || end <= start) continue;
+      slots.push({ day, start, end, cursor: start });
+    }
+  }
+
+  return mergeOverlappingSlots(slots);
+}
+
+function subtractRanges(baseRange, blockedRanges) {
+  let result = [baseRange];
+
+  for (const blocked of blockedRanges) {
+    const next = [];
+
+    for (const current of result) {
+      if (blocked.end <= current.start || blocked.start >= current.end) {
+        next.push(current);
+        continue;
+      }
+
+      if (blocked.start > current.start) {
+        next.push({ start: current.start, end: blocked.start });
+      }
+
+      if (blocked.end < current.end) {
+        next.push({ start: blocked.end, end: current.end });
+      }
+    }
+
+    result = next;
+  }
+
+  return result;
+}
+
+function getSlotsFromUnavailableData() {
+  const slots = [];
+  const baseStart = toMin(document.getElementById('baseStart').value);
+  const baseEnd = toMin(document.getElementById('baseEnd').value);
+
+  if (Number.isNaN(baseStart) || Number.isNaN(baseEnd) || baseEnd <= baseStart) return [];
+
+  for (let day = 0; day < 7; day++) {
+    const blocked = unavailabilityData[day]
+      .map(r => ({ start: toMin(r.start), end: toMin(r.end), label: r.label || '고정 일정' }))
+      .filter(r => !Number.isNaN(r.start) && !Number.isNaN(r.end) && r.end > r.start)
+      .sort((a, b) => a.start - b.start);
+
+    const availableRanges = subtractRanges({ start: baseStart, end: baseEnd }, blocked);
+
+    for (const range of availableRanges) {
+      if (range.end > range.start) {
+        slots.push({ day, start: range.start, end: range.end, cursor: range.start });
+      }
+    }
+  }
+
+  return mergeOverlappingSlots(slots);
+}
+
+function getSlotsByMode() {
+  return timeMode === 'available' ? getSlotsFromAvailableData() : getSlotsFromUnavailableData();
+}
+
+function getFixedBlocks() {
+  if (timeMode !== 'unavailable') return [[], [], [], [], [], [], []];
+
+  const fixed = [[], [], [], [], [], [], []];
+  for (let day = 0; day < 7; day++) {
+    for (const range of unavailabilityData[day]) {
+      const start = toMin(range.start);
+      const end = toMin(range.end);
+      if (Number.isNaN(start) || Number.isNaN(end) || end <= start) continue;
+      fixed[day].push({ type: 'fixed', start, end, label: range.label || '고정 일정' });
+    }
+  }
+  return fixed;
+}
+
+function addTask(taskData = null) {
+  const id = taskData?.id ?? taskCounter++;
+  taskCounter = Math.max(taskCounter, id + 1);
+  const color = taskData?.color || PALETTE[id % PALETTE.length];
+
+  const task = {
+    id,
+    name: taskData?.name || '',
+    amount: Number(taskData?.amount ?? 30),
+    done: Number(taskData?.done ?? 0),
+    unit: taskData?.unit || '쪽',
+    rate: Number(taskData?.rate ?? 10),
+    priority: taskData?.priority || 'medium',
+    deadline: taskData?.deadline ?? '6',
+    split: Number(taskData?.split ?? 3),
+    color
+  };
+
+  tasks.push(task);
+  renderTaskCard(task);
+  updateTaskEstimate(task.id);
+  saveSoft();
+}
+
+function renderTaskCard(task) {
+  const card = document.createElement('div');
+  card.className = 'task-card';
+  card.id = 'task-' + task.id;
+
+  card.innerHTML = `
+    <div class="task-head">
+      <div class="color-dot" style="background:${task.color}"></div>
+      <input class="task-name" value="${escapeAttr(task.name)}" placeholder="과제 이름" oninput="updateTask(${task.id}, 'name', this.value)" />
+      <button class="remove-btn" onclick="removeTask(${task.id})">×</button>
+    </div>
+
+    <div class="task-meta">
+      <div>
+        <label>전체 분량</label>
+        <input type="number" value="${task.amount}" min="0" step="1" oninput="updateTask(${task.id}, 'amount', parseFloat(this.value) || 0)" />
+      </div>
+      <div>
+        <label>완료 분량</label>
+        <input type="number" value="${task.done}" min="0" step="1" oninput="updateTask(${task.id}, 'done', parseFloat(this.value) || 0)" />
+      </div>
+      <div>
+        <label>단위</label>
+        <input type="text" value="${escapeAttr(task.unit)}" placeholder="쪽/문제/개" oninput="updateTask(${task.id}, 'unit', this.value)" />
+      </div>
+    </div>
+
+    <div class="task-options">
+      <div>
+        <label>처리 속도 / 시간</label>
+        <input type="number" value="${task.rate}" min="0.1" step="0.5" oninput="updateTask(${task.id}, 'rate', parseFloat(this.value) || 1)" />
+      </div>
+      <div>
+        <label>마감일</label>
+        <select onchange="updateTask(${task.id}, 'deadline', this.value)">
+          ${DAYS.map((d, i) => `<option value="${i}" ${String(task.deadline) === String(i) ? 'selected' : ''}>${d}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label>우선순위</label>
+        <select onchange="updateTask(${task.id}, 'priority', this.value)">
+          <option value="high" ${task.priority === 'high' ? 'selected' : ''}>높음</option>
+          <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>보통</option>
+          <option value="low" ${task.priority === 'low' ? 'selected' : ''}>낮음</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="task-options" style="margin-top:8px">
+      <div>
+        <label>분할 정도</label>
+        <select onchange="updateTask(${task.id}, 'split', parseInt(this.value))">
+          <option value="1" ${task.split === 1 ? 'selected' : ''}>1회</option>
+          <option value="2" ${task.split === 2 ? 'selected' : ''}>2회</option>
+          <option value="3" ${task.split === 3 ? 'selected' : ''}>3회</option>
+          <option value="4" ${task.split === 4 ? 'selected' : ''}>4회</option>
+          <option value="5" ${task.split === 5 ? 'selected' : ''}>5회</option>
+        </select>
+      </div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-${task.id}"></div></div>
+    </div>
+    <div class="estimate" id="estimate-${task.id}"></div>
+  `;
+
+  document.getElementById('taskList').appendChild(card);
+}
+
+function updateTask(id, key, value) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  if (['amount', 'done', 'rate', 'split'].includes(key)) {
+    task[key] = Number(value);
+  } else {
+    task[key] = value;
+  }
+
+  if (task.done > task.amount) task.done = task.amount;
+  if (task.done < 0) task.done = 0;
+  if (task.rate <= 0) task.rate = 1;
+
+  updateTaskEstimate(id);
+  saveSoft();
+}
+
+function removeTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  const el = document.getElementById('task-' + id);
+  if (el) el.remove();
+  saveSoft();
+}
+
+function getRemainingAmount(task) {
+  return Math.max(0, Number(task.amount || 0) - Number(task.done || 0));
+}
+
+function getTaskMinutes(task) {
+  const remaining = getRemainingAmount(task);
+  const rate = Math.max(0.1, Number(task.rate || 1));
+  return Math.ceil((remaining / rate) * 60);
+}
+
+function updateTaskEstimate(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  const estimate = document.getElementById('estimate-' + id);
+  const progress = document.getElementById('progress-' + id);
+  const remaining = getRemainingAmount(task);
+  const minutes = getTaskMinutes(task);
+  const percent = task.amount > 0 ? clampNumber((task.done / task.amount) * 100, 0, 100) : 0;
+
+  if (progress) progress.style.width = percent + '%';
+  if (estimate) {
+    estimate.innerHTML = `
+      진행률 ${percent.toFixed(0)}% · 남은 분량 ${remaining.toFixed(1)}${escapeHtml(task.unit)} · 예상 ${formatHourMin(minutes)}<br>
+      마감 ${DAYS[Number(task.deadline)] || '일'}요일 · ${task.rate}${escapeHtml(task.unit)}/시간 기준
+    `;
+  }
+}
+
+function getValidTasks() {
+  return tasks.filter(t => t.name.trim() && getRemainingAmount(t) > 0 && Number(t.rate) > 0);
+}
+
+function generateSessions(validTasks, focusLen) {
+  const priorityScore = { high: 0, medium: 1, low: 2 };
+
+  const sorted = [...validTasks].sort((a, b) => {
+    const da = Number(a.deadline);
+    const db = Number(b.deadline);
+    if (da !== db) return da - db;
+    if (priorityScore[a.priority] !== priorityScore[b.priority]) return priorityScore[a.priority] - priorityScore[b.priority];
+    return getTaskMinutes(b) - getTaskMinutes(a);
+  });
+
+  const sessions = [];
+
+  for (const task of sorted) {
+    const totalMin = getTaskMinutes(task);
+    const remainingAmount = getRemainingAmount(task);
+    const split = Math.max(1, Number(task.split || 1));
+    const base = Math.floor(totalMin / split);
+    let amountLeft = remainingAmount;
+
+    for (let i = 0; i < split; i++) {
+      let dur = i === split - 1 ? totalMin - base * (split - 1) : base;
+
+      while (dur > 0) {
+        const chunkMin = Math.min(dur, focusLen);
+        const amountChunk = Math.min(amountLeft, (chunkMin / 60) * Number(task.rate));
+
+        sessions.push({
+          task,
+          dur: chunkMin,
+          amount: amountChunk,
+          deadline: Number(task.deadline)
+        });
+
+        amountLeft -= amountChunk;
+        dur -= chunkMin;
+      }
+    }
+  }
+
+  return sessions.filter(s => s.dur > 0 && s.amount > 0);
+}
+
+function getTotalAvailableMinutes(slots) {
+  return slots.reduce((sum, s) => sum + Math.max(0, s.end - s.start), 0);
+}
+
+function getDailyAvailableMinutes(slots) {
+  const daily = Array(7).fill(0);
+  for (const s of slots) daily[s.day] += Math.max(0, s.end - s.start);
+  return daily;
+}
+
+function getTotalTaskMinutes(validTasks) {
+  return validTasks.reduce((sum, t) => sum + getTaskMinutes(t), 0);
+}
+
+function getEffectiveCapacity(slots, dailyMaxMin) {
+  const daily = getDailyAvailableMinutes(slots);
+  return daily.reduce((sum, min) => sum + Math.min(min, dailyMaxMin), 0);
+}
+
+function generateSchedule() {
+  if (uiMode === 'simple') {
+    applySimpleInputs();
+  }
+
+  const focusLen = Math.max(10, parseInt(document.getElementById('focusLen').value) || 50);
+  const breakLen = Math.max(0, parseInt(document.getElementById('breakLen').value) || 0);
+  const dailyMaxMin = Math.max(1, Number(document.getElementById('dailyMaxHours').value || 4)) * 60;
+
+  const validTasks = getValidTasks();
+  if (validTasks.length === 0) {
+    showAlert('남은 분량이 있는 과제를 하나 이상 입력하세요.');
+    return;
+  }
+
+  const slots = getSlotsByMode();
+  if (slots.length === 0) {
+    showAlert('배치 가능한 시간이 없습니다. 시간 입력을 확인하세요.');
+    return;
+  }
+
+  const result = getFixedBlocks();
+  const dayStudyUsed = Array(7).fill(0);
+  const sessions = generateSessions(validTasks, focusLen);
+  const missed = [];
+
+  for (const session of sessions) {
+    let placed = false;
+
+    for (const slot of slots) {
+      if (slot.day > session.deadline) continue;
+      if (dayStudyUsed[slot.day] + session.dur > dailyMaxMin) continue;
+      if (slot.cursor + session.dur > slot.end) continue;
+
+      const start = slot.cursor;
+      const end = start + session.dur;
+
+      result[slot.day].push({
+        type: 'task',
+        task: session.task,
+        start,
+        end,
+        amount: session.amount
+      });
+
+      slot.cursor = end;
+      dayStudyUsed[slot.day] += session.dur;
+
+      if (breakLen > 0 && slot.cursor + breakLen <= slot.end) {
+        result[slot.day].push({
+          type: 'break',
+          start: slot.cursor,
+          end: slot.cursor + breakLen
+        });
+        slot.cursor += breakLen;
+      }
+
+      placed = true;
+      break;
+    }
+
+    if (!placed) {
+      missed.push(session.task.name);
+    }
+  }
+
+  const totalAvailable = getTotalAvailableMinutes(slots);
+  const totalTask = getTotalTaskMinutes(validTasks);
+  const effectiveCapacity = getEffectiveCapacity(slots, dailyMaxMin);
+
+  latestSchedule = { result, slots, totalAvailable, totalTask, effectiveCapacity, missed, dayStudyUsed, dailyMaxMin };
+  renderWeeklySchedule(latestSchedule);
+}
+
+function renderWeeklySchedule(data) {
+  const panel = document.getElementById('schedulePanel');
+  panel.innerHTML = '';
+
+  const { result, slots, totalAvailable, totalTask, effectiveCapacity, missed, dayStudyUsed, dailyMaxMin } = data;
+
+  const placedTaskMin = result.flat()
+    .filter(b => b.type === 'task')
+    .reduce((sum, b) => sum + (b.end - b.start), 0);
+
+  const fixedMin = result.flat()
+    .filter(b => b.type === 'fixed')
+    .reduce((sum, b) => sum + (b.end - b.start), 0);
+
+  const summary = document.createElement('div');
+  summary.className = 'summary-grid';
+  summary.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-value">${formatHourMin(totalTask)}</div>
+      <div class="summary-label">남은 과제 예상 시간</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value">${formatHourMin(totalAvailable)}</div>
+      <div class="summary-label">총 가능 시간</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value">${formatHourMin(effectiveCapacity)}</div>
+      <div class="summary-label">하루 제한 반영 가능 시간</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value">${formatHourMin(placedTaskMin)}</div>
+      <div class="summary-label">실제 배치된 공부 시간</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value">${formatHourMin(Math.max(0, effectiveCapacity - placedTaskMin))}</div>
+      <div class="summary-label">남은 배치 가능 시간</div>
+    </div>
+  `;
+  panel.appendChild(summary);
+
+  const actions = document.createElement('div');
+  actions.className = 'result-actions';
+  actions.innerHTML = `
+    <button class="btn primary" onclick="generateSchedule()">남은 분량 재배치</button>
+    <button class="btn" onclick="copyScheduleText()">결과 텍스트 복사</button>
+    <button class="btn" onclick="saveData()">현재 상태 저장</button>
+  `;
+  panel.appendChild(actions);
+
+  const warnings = [];
+  if (totalTask > effectiveCapacity) {
+    warnings.push(`시간 부족: 남은 과제는 ${formatHourMin(totalTask)}인데, 하루 최대 공부량까지 반영한 실제 배치 가능 시간은 ${formatHourMin(effectiveCapacity)}입니다.`);
+  }
+  if (missed.length > 0) {
+    warnings.push(`배치 실패 세션 포함: ${[...new Set(missed)].join(', ')}. 마감일이 너무 빠르거나 하루 최대 공부량이 낮을 수 있습니다.`);
+  }
+  if (fixedMin > 0) {
+    warnings.push(`불가능 시간 모드의 고정 일정 ${formatHourMin(fixedMin)}도 결과에 함께 표시했습니다.`);
+  }
+
+  if (warnings.length) {
+    const warn = document.createElement('div');
+    warn.className = 'warning-box';
+    warn.innerHTML = warnings.map(w => `• ${escapeHtml(w)}`).join('<br>');
+    panel.appendChild(warn);
+  }
+
+  const dailyAvailable = getDailyAvailableMinutes(slots);
+  const week = document.createElement('div');
+  week.className = 'week-result';
+
+  for (let day = 0; day < 7; day++) {
+    const col = document.createElement('div');
+    col.className = 'day-column';
+
+    const used = dayStudyUsed[day];
+    const dayCap = Math.min(dailyAvailable[day], dailyMaxMin);
+    const remain = Math.max(0, dayCap - used);
+
+    col.innerHTML = `
+      <div class="day-title">${DAY_NAMES[day]}</div>
+      <div class="remain-text">
+        공부 ${formatHourMin(used)} / 제한 ${formatHourMin(dayCap)}<br>
+        남은 배치 가능 ${formatHourMin(remain)}
+      </div>
+    `;
+
+    result[day].sort((a, b) => a.start - b.start);
+
+    if (result[day].length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = '배치 없음';
+      col.appendChild(empty);
+    }
+
+    for (const block of result[day]) {
+      const el = document.createElement('div');
+
+      if (block.type === 'task') {
+        el.className = 'block';
+        el.style.borderLeftColor = block.task.color;
+        el.style.background = block.task.color + '22';
+        el.innerHTML = `
+          <div class="block-check">
+            <input type="checkbox" onchange="completeBlock(${block.task.id}, ${block.amount})" />
+            <div>
+              <div class="block-title">${escapeHtml(block.task.name)}</div>
+              <div class="block-time">${fromMin(block.start)} - ${fromMin(block.end)}</div>
+              <div class="block-sub">약 ${block.amount.toFixed(1)}${escapeHtml(block.task.unit)} · 마감 ${DAYS[Number(block.task.deadline)]}요일</div>
+            </div>
+          </div>
+        `;
+      } else if (block.type === 'fixed') {
+        el.className = 'block fixed';
+        el.innerHTML = `
+          <div class="block-title">고정 일정 · ${escapeHtml(block.label)}</div>
+          <div class="block-time">${fromMin(block.start)} - ${fromMin(block.end)}</div>
+        `;
+      } else {
+        el.className = 'block break';
+        el.innerHTML = `
+          <div class="block-title">휴식</div>
+          <div class="block-time">${fromMin(block.start)} - ${fromMin(block.end)}</div>
+        `;
+      }
+
+      col.appendChild(el);
+    }
+
+    week.appendChild(col);
+  }
+
+  panel.appendChild(week);
+}
+
+function completeBlock(taskId, amount) {
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  task.done = Math.min(Number(task.amount), Number(task.done || 0) + Number(amount || 0));
+
+  const card = document.getElementById('task-' + taskId);
+  if (card) {
+    const inputs = card.querySelectorAll('input[type="number"]');
+    if (inputs[1]) inputs[1].value = task.done.toFixed(1).replace(/\.0$/, '');
+  }
+
+  updateTaskEstimate(taskId);
+  saveSoft();
+  generateSchedule();
+}
+
+function parseSimpleTaskLine(line) {
+  const parts = line.split('/').map(p => p.trim()).filter(Boolean);
+  if (parts.length < 3) return null;
+
+  const name = parts[0];
+  const amountText = parts[1];
+  const deadlineText = parts[2];
+
+  const amountMatch = amountText.match(/([0-9]+(?:\.[0-9]+)?)(.*)/);
+  if (!amountMatch) return null;
+
+  const amount = Number(amountMatch[1]);
+  const unit = amountMatch[2].trim() || '개';
+
+  const dayMap = {
+    '월': 0, '월요일': 0,
+    '화': 1, '화요일': 1,
+    '수': 2, '수요일': 2,
+    '목': 3, '목요일': 3,
+    '금': 4, '금요일': 4,
+    '토': 5, '토요일': 5,
+    '일': 6, '일요일': 6
+  };
+
+  const deadline = dayMap[deadlineText] ?? dayMap[deadlineText[0]] ?? 6;
+
+  let rate = 10;
+  if (unit.includes('쪽') || unit.includes('페이지')) rate = 10;
+  else if (unit.includes('문제')) rate = 15;
+  else if (unit.includes('단어') || unit.includes('개')) rate = 40;
+  else if (unit.includes('장')) rate = 2;
+
+  return {
+    name,
+    amount,
+    done: 0,
+    unit,
+    rate,
+    priority: 'medium',
+    deadline: String(deadline),
+    split: 3
+  };
+}
+
+function applySimpleInputs() {
+  const preset = document.getElementById('simplePreset').value;
+  const simpleDailyMax = Number(document.getElementById('simpleDailyMax').value || 4);
+
+  uiMode = 'simple';
+  timeMode = 'available';
+  document.getElementById('dailyMaxHours').value = simpleDailyMax;
+  document.getElementById('focusLen').value = 50;
+  document.getElementById('breakLen').value = 10;
+  document.getElementById('baseStart').value = '06:00';
+  document.getElementById('baseEnd').value = '23:30';
+
+  if (preset === 'weekdayEvening') {
+    availabilityData = [
+      [{ start: '18:00', end: '23:00' }],
+      [{ start: '18:00', end: '23:00' }],
+      [{ start: '18:00', end: '23:00' }],
+      [{ start: '18:00', end: '23:00' }],
+      [{ start: '18:00', end: '23:00' }],
+      [{ start: '13:00', end: '18:00' }],
+      [{ start: '13:00', end: '18:00' }]
+    ];
+  } else if (preset === 'everyEvening') {
+    availabilityData = Array.from({ length: 7 }, () => [{ start: '18:00', end: '23:00' }]);
+  } else if (preset === 'weekendHeavy') {
+    availabilityData = [
+      [{ start: '20:00', end: '22:00' }],
+      [{ start: '20:00', end: '22:00' }],
+      [{ start: '20:00', end: '22:00' }],
+      [{ start: '20:00', end: '22:00' }],
+      [{ start: '20:00', end: '22:00' }],
+      [{ start: '10:00', end: '18:00' }],
+      [{ start: '10:00', end: '18:00' }]
+    ];
+  } else if (preset === 'afterSchool') {
+    availabilityData = [
+      [{ start: '17:00', end: '22:30' }],
+      [{ start: '17:00', end: '22:30' }],
+      [{ start: '17:00', end: '22:30' }],
+      [{ start: '17:00', end: '22:30' }],
+      [{ start: '17:00', end: '22:30' }],
+      [{ start: '10:00', end: '17:00' }],
+      [{ start: '10:00', end: '17:00' }]
+    ];
+  }
+
+  tasks = [];
+  taskCounter = 0;
+  document.getElementById('taskList').innerHTML = '';
+
+  const lines = document.getElementById('simpleTasksText').value.split('\n');
+  for (const line of lines) {
+    const parsed = parseSimpleTaskLine(line.trim());
+    if (parsed) addTask(parsed);
+  }
+
+  setTimeMode('available');
+  saveSoft();
+}
+
+function copyScheduleText() {
+  if (!latestSchedule) {
+    showAlert('복사할 시간표가 없습니다. 먼저 시간표를 생성하세요.');
+    return;
+  }
+
+  const lines = [];
+  lines.push('주간 학습 계획');
+  lines.push('');
+
+  for (let day = 0; day < 7; day++) {
+    lines.push(`[${DAY_NAMES[day]}]`);
+    const blocks = latestSchedule.result[day].slice().sort((a, b) => a.start - b.start);
+
+    if (!blocks.length) {
+      lines.push('배치 없음');
+    } else {
+      for (const b of blocks) {
+        if (b.type === 'task') {
+          lines.push(`${fromMin(b.start)}-${fromMin(b.end)} ${b.task.name} (${b.amount.toFixed(1)}${b.task.unit})`);
+        } else if (b.type === 'fixed') {
+          lines.push(`${fromMin(b.start)}-${fromMin(b.end)} [고정] ${b.label}`);
+        } else {
+          lines.push(`${fromMin(b.start)}-${fromMin(b.end)} 휴식`);
+        }
+      }
+    }
+    lines.push('');
+  }
+
+  navigator.clipboard.writeText(lines.join('\n'))
+    .then(() => showAlert('시간표 텍스트를 복사했습니다.'))
+    .catch(() => showAlert('복사에 실패했습니다. 브라우저 권한을 확인하세요.'));
+}
+
+function saveData() {
+  const data = getSavePayload();
+  localStorage.setItem('weeklyStudyPlannerData', JSON.stringify(data));
+  showAlert('저장되었습니다.');
+}
+
+function saveSoft() {
+  const data = getSavePayload();
+  localStorage.setItem('weeklyStudyPlannerData_autosave', JSON.stringify(data));
+}
+
+function getSavePayload() {
+  return {
+    uiMode,
+    timeMode,
+    simplePreset: document.getElementById('simplePreset').value,
+    simpleDailyMax: document.getElementById('simpleDailyMax').value,
+    simpleTasksText: document.getElementById('simpleTasksText').value,
+    availabilityData,
+    unavailabilityData,
+    baseStart: document.getElementById('baseStart').value,
+    baseEnd: document.getElementById('baseEnd').value,
+    dailyMaxHours: document.getElementById('dailyMaxHours').value,
+    focusLen: document.getElementById('focusLen').value,
+    breakLen: document.getElementById('breakLen').value,
+    tasks,
+    taskCounter
+  };
+}
+
+function loadData(useAuto = false) {
+  const key = useAuto ? 'weeklyStudyPlannerData_autosave' : 'weeklyStudyPlannerData';
+  const raw = localStorage.getItem(key);
+
+  if (!raw) {
+    if (!useAuto) showAlert('저장된 데이터가 없습니다.');
+    return;
+  }
+
+  try {
+    const data = JSON.parse(raw);
+
+    uiMode = data.uiMode || 'simple';
+    timeMode = data.timeMode || 'available';
+    availabilityData = normalizeWeekData(data.availabilityData, false) || availabilityData;
+    unavailabilityData = normalizeWeekData(data.unavailabilityData, true) || unavailabilityData;
+
+    document.getElementById('simplePreset').value = data.simplePreset || 'weekdayEvening';
+    document.getElementById('simpleDailyMax').value = data.simpleDailyMax || 4;
+    document.getElementById('simpleTasksText').value = data.simpleTasksText || document.getElementById('simpleTasksText').value;
+
+    document.getElementById('baseStart').value = data.baseStart || '06:00';
+    document.getElementById('baseEnd').value = data.baseEnd || '23:30';
+    document.getElementById('dailyMaxHours').value = data.dailyMaxHours || 4;
+    document.getElementById('focusLen').value = data.focusLen || 50;
+    document.getElementById('breakLen').value = data.breakLen || 10;
+
+    tasks = [];
+    taskCounter = Number(data.taskCounter || 0);
+    document.getElementById('taskList').innerHTML = '';
+
+    for (const t of data.tasks || []) {
+      addTask(t);
+    }
+
+    setTimeMode(timeMode);
+    setUiMode(uiMode);
+    if (!useAuto) showAlert('불러왔습니다.');
+  } catch (e) {
+    showAlert('불러오기 중 오류가 발생했습니다.');
+  }
+}
+
+function normalizeWeekData(data, withLabel) {
+  if (!Array.isArray(data) || data.length !== 7) return null;
+  return data.map(dayList => {
+    if (!Array.isArray(dayList)) return [];
+    return dayList.map(r => ({
+      start: r.start || '18:00',
+      end: r.end || '19:00',
+      ...(withLabel ? { label: r.label || '고정 일정' } : {})
+    }));
+  });
+}
+
+function resetAll() {
+  if (!confirm('모든 입력값을 초기화할까요?')) return;
+  localStorage.removeItem('weeklyStudyPlannerData');
+  localStorage.removeItem('weeklyStudyPlannerData_autosave');
+  location.reload();
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function escapeAttr(text) {
+  return escapeHtml(text);
+}
+
+function initSampleTasks() {
+  addTask({
+    name: '수학 문제집',
+    amount: 40,
+    done: 0,
+    unit: '쪽',
+    rate: 10,
+    priority: 'high',
+    deadline: '2',
+    split: 4
+  });
+
+  addTask({
+    name: '영어 단어',
+    amount: 120,
+    done: 20,
+    unit: '개',
+    rate: 40,
+    priority: 'medium',
+    deadline: '4',
+    split: 3
+  });
+
+  addTask({
+    name: '과학 보고서',
+    amount: 5,
+    done: 0,
+    unit: '쪽',
+    rate: 1.5,
+    priority: 'high',
+    deadline: '5',
+    split: 3
+  });
+}
+
+renderTimeEditor();
+
+const hasAutosave = !!localStorage.getItem('weeklyStudyPlannerData_autosave');
+if (hasAutosave) {
+  loadData(true);
+} else {
+  initSampleTasks();
+  setTimeMode('available');
+  setUiMode('simple');
+}
+</script>
+</body>
+</html>
